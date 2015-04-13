@@ -1,4 +1,4 @@
-# file-lister
+# File-lister
 
 Program fully written in Haskell which will be able to :
   - Scan all files from your computer (unix only for the moment)
