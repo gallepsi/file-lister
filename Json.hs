@@ -10,17 +10,19 @@ import Control.Applicative ((<$>), (<*>))
 import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BL
 import Control.Monad (mzero)
+import System.Posix
+import System.Time
 
 data File = File {
-  path :: String,
---  nameFile :: String,
-  sizeFile :: Integer
+      path :: String,
+      lastAccessTime :: String,
+      sizeFile :: Integer
   }
   deriving (Show)
 
 data Datas = Datas {
-  idClient :: Double,
-  allFiles :: [File]
+      idClient :: Double,
+      allFiles :: [File]
   }
   deriving (Show)
 
@@ -33,7 +35,7 @@ instance FromJSON Datas where
 instance FromJSON File where
   parseJSON (Object o) =
     File <$> (o .: "path")
---    <*> (o .: "nameFile")
+    <*> (o .: "lastAccessTime")
     <*> (o .: "sizeFile")
   parseJSON _ = mzero
 
@@ -41,12 +43,12 @@ instance ToJSON Datas where
   toJSON (Datas idC allFiles) = object ["idClient" .= idC, "allFiles" .= allFiles]
 
 instance ToJSON File where
-  toJSON (File path sizeFile) = object ["path" .= path, "sizeFile" .= sizeFile]
+  toJSON (File path lastAccessTime sizeFile) = object ["path" .= path, "lastAccessTime" .= lastAccessTime, "sizeFile" .= sizeFile]
 
 
-listFiles_to_data :: [(String, Integer)] -> [File]
+listFiles_to_data :: [(String,String, Integer)] -> [File]
 listFiles_to_data [] = []
-listFiles_to_data ((p,sf):ls) = 
-              let h = File{path=p ,sizeFile=sf} in 
+listFiles_to_data ((p,at,sf):ls) = 
+              let h = File{path=p ,lastAccessTime=at,sizeFile=sf} in 
               (h:listFiles_to_data ls)
 

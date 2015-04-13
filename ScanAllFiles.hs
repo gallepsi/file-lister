@@ -8,22 +8,33 @@ where
 
 import System.Directory 
 import System.Posix
-import Control.Monad
+import System.IO
+import System.Time
 import System.Environment
+import Control.Monad
 import Data.List
 import qualified Data.Set as S 
-import System.IO
 import Control.Exception
-import System.Posix.Time
 
--- useless 
+-- useless (more powerful nub)
 eliminateDuplicates :: (Ord a) => [a] -> [a]
 eliminateDuplicates = go S.empty
   where go _ [] = []
         go s (x:xs) | S.member x s = go s xs
                     | otherwise    = x : go (S.insert x s) xs
 
-getStruct :: [FilePath] -> IO [(FilePath, Integer, System.Posix.EpochTime)]
+
+getTimes :: FilePath -> IO String
+getTimes fp =
+    do stat <- getFileStatus fp
+       let a = (toct (accessTime stat)) 
+       let r = calendarTimeToString(toUTCTime a)
+       return r
+
+toct :: EpochTime -> ClockTime
+toct et = TOD (truncate (toRational et)) 0
+
+getStruct :: [FilePath] -> IO [(FilePath,String,Integer)]
 getStruct [] =  return []
 getStruct (f:fs) = do
           -- Ultimate verification: trying to open the file & get his size
@@ -33,15 +44,16 @@ getStruct (f:fs) = do
               Right sizeFile -> go sizeFile
                 where 
                   go sizeFile = do
-                      status <- getFileStatus f
-                      let aTime = accessTime status
+                      mt <- getTimes f
                       recursiveStruct <- (getStruct fs)
-                      return ((f,sizeFile,aTime) : recursiveStruct)
+                      return ((f,mt,sizeFile) : recursiveStruct)
 
 unwantedPath :: [FilePath]
-unwantedPath = ["//Network",
-                "//dev",
-                "//Volumes"]
+unwantedPath = ["//Network","//dev","//Volumes","//root","//etc","//home","//Applications","//Users"]
+
+--unwantedPath = ["//Network",
+--                "//dev",
+--                "//Volumes"]
 
 accessAllowed :: FilePath ->IO Bool
 accessAllowed path = 

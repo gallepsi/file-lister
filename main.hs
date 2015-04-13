@@ -19,8 +19,8 @@ main = do
   print "-- Scanning system --"
   lst <- listAllFiles "/"
   print "Scan done, preview Struct:"
-  getStruct lst >>= print.length
+  a <- getStruct lst
   --let b = listFiles_to_data a in do
   --let reply = Datas{ idClient=1, allFiles=b }
+  return ()
   --BL.putStrLn (encode reply)
-  --return ()
